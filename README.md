@@ -7,8 +7,8 @@ Microservicio procesador que consume ubicaciones GPS de vehículos desde Kafka, 
 - Java 21
 - Spring Boot 3.3.1
 - Spring Kafka
-- Apache Kafka (3 brokers)
-- Docker
+- Apache Kafka (1 broker — optimizado para despliegue en EC2)
+- Docker (imagen multi-plataforma: linux/amd64, linux/arm64)
 
 ## Puerto
 
@@ -20,8 +20,8 @@ Microservicio procesador que consume ubicaciones GPS de vehículos desde Kafka, 
 
 | Dirección | Topic | Consumer Group | Particiones | Réplicas |
 |-----------|-------|----------------|-------------|----------|
-| Consume   | `ubicaciones_vehiculos` | `procesamiento-ubicaciones-group` | 3 | 2 |
-| Produce   | `horarios` | — | 3 | 2 |
+| Consume   | `ubicaciones_vehiculos` | `procesamiento-ubicaciones-group` | 3 | 1 |
+| Produce   | `horarios` | — | 3 | 1 |
 
 ## Lógica de procesamiento
 
@@ -76,9 +76,15 @@ docker compose up -d cons-ub-prod-hor-kafka
 ```bash
 docker build -t cons-ub-prod-hor-kafka .
 docker run -p 8082:8082 \
-  -e SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092 \
+  -e SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092 \
   --network kafka-net \
   cons-ub-prod-hor-kafka
+```
+
+### Imagen Docker Hub
+
+```bash
+docker pull dimmox/cons-ub-prod-hor-kafka:latest
 ```
 
 ### Local con Maven
@@ -87,11 +93,11 @@ docker run -p 8082:8082 \
 ./mvnw spring-boot:run
 ```
 
-Requiere Kafka corriendo en `localhost:29092,localhost:39092,localhost:49092`.
+Requiere Kafka corriendo en `localhost:29092`.
 
 ## Variables de entorno
 
 | Variable | Descripción | Valor por defecto |
 |----------|-------------|-------------------|
-| `SPRING_KAFKA_BOOTSTRAP_SERVERS` | Brokers Kafka | `localhost:29092,localhost:39092,localhost:49092` |
+| `SPRING_KAFKA_BOOTSTRAP_SERVERS` | Brokers Kafka | `kafka-1:9092` |
 | `SERVER_PORT` | Puerto del servicio | `8082` |
